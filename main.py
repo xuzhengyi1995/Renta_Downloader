@@ -11,6 +11,7 @@ max_loop = 20
 header['Cookie'] = "YOUR_COOKIE_HERE"
 # Manga URL
 base_url = "http://dre-ap-pc2.papy.co.jp/sc/view_jsimg2/0c720e43cc4ce9067d/9-480796-84/FIX001/%d?type=6"
+sum_page = 204
 # ********SETTINGS********
 
 
@@ -75,7 +76,7 @@ header['Connection'] = 'keep-alive'
 header['Upgrade-Insecure-Requests'] = '1'
 header['Accept-Language'] = 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3'
 
-for page in range(1, 204):
+for page in range(1, sum_page):
     x = 7
     y = 7
     url = base_url % page
