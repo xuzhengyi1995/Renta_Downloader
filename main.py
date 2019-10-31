@@ -1,18 +1,36 @@
+﻿# Download renta manga, version 2019-10-31, program tested, XU Zhengyi
+import gzip
+import math
+import os
+from io import BytesIO
+
+import PIL.Image as image
 
 from getHtml import GetHtml
-import PIL.Image as image
-from io import BytesIO
-import math
 
 header = {}
 # ********SETTINGS********
-prd_ser = 480796
+# prd_ser in index.view
+prd_ser = 524390
+# Max retry, no need to change
 max_loop = 20
+# Your cookie here
 header['Cookie'] = "YOUR_COOKIE_HERE"
-# Manga URL
-base_url = "http://dre-ap-pc2.papy.co.jp/sc/view_jsimg2/0c720e43cc4ce9067d/9-480796-84/FIX001/%d?type=6"
-sum_page = 204
+# url_base2 + %d in the index.view
+base_url = "https://dre-aka-p.papy.co.jp/filesv/sc/contents/524390/6s/0/%d"
+# cache_update in index.view, if don't have, give it None
+cache_update = None
+# auth_key_papy in index.view
+auth_key_papy = "auth-key=exp=1572535751~acl=%2Ffilesv%2Fsc%2Fcontents%2F524390%2F6s%2F0%2F%2A~hmac=6f537768a36f89fb3b3a9e5621dc2ca44df6ccf4e3a91b6fdb180ac2c864e6ea"
+# smax_page in index.view
+sum_page = 181
+# Where to put download manga
+imgdir = "./キルラキル_1"
 # ********SETTINGS********
+
+
+if not os.path.isdir(imgdir):
+    os.mkdir(imgdir)
 
 
 def f_shuffle_r(ar_number, snum, x_idx, y):
@@ -70,19 +88,28 @@ getter = GetHtml()
 
 header['User-Agent'] = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0'
 header['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-header['Host'] = 'dre-ap-pc2.papy.co.jp'
 header['Accept-Encoding'] = 'gzip, deflate, br'
+header['Referer'] = 'https://dre-viewer.papy.co.jp/sc/view_jsimg2/9b30e78b669d6dab4b/9-524390-84/FIX001/index.view'
+header['Origin'] = 'https://dre-viewer.papy.co.jp'
+header['Sec-Fetch-Mode'] = 'cors'
 header['Connection'] = 'keep-alive'
 header['Upgrade-Insecure-Requests'] = '1'
 header['Accept-Language'] = 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3'
 
-for page in range(1, sum_page):
+for page in range(1, sum_page + 1):
     x = 7
     y = 7
-    url = base_url % page
+    url = base_url % page + "?"
+    if cache_update:
+        url += "date=" + cache_update
+    url += auth_key_papy + "&origin=s_dre-viewer.papy.co.jp"
 
     getter.set(url, header=header, retryTimes=5)
-    data = bytearray(getter.get())
+    org_data = getter.get()
+    try:
+        data = bytearray(gzip.decompress(org_data))
+    except:
+        data = bytearray(org_data)
 
     head_length = int(data[:9])
 
@@ -130,7 +157,6 @@ for page in range(1, sum_page):
             FinalImage.paste(og_img, (0, 0))
 
     ar_number = [[i * x + j for j in range(y)] for i in range(x)]
-    print(ar_number)
     for i in range(y):
         ar_tmp = [0 for i in range(x)]
         st = x - i % x
@@ -170,7 +196,6 @@ for page in range(1, sum_page):
             d_sty = diff_h + (i * after_height)
             number = ar_number[i][j]
             ar_didx[number] = (d_stx, d_sty)
-    print(ar_number)
 
     img_arr = []
     for i in s_data:
@@ -182,5 +207,6 @@ for page in range(1, sum_page):
         file_data = BytesIO(img_arr[i])
         og_img = image.open(file_data)
         FinalImage.paste(og_img, (x, y))
-    with open('./%d.jpg' % page, "wb") as f:
+    with open(imgdir + '/%d.jpg' % page, "wb") as f:
         FinalImage.save(f)
+        print('Saved page %d' % page)
