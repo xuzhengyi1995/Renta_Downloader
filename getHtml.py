@@ -1,7 +1,7 @@
 # use urllib to get resources
 
-import urllib.request
 import socket
+import urllib.request
 
 
 class GetHtml:

@@ -2,30 +2,27 @@
 import gzip
 import math
 import os
+import re
 from io import BytesIO
 
 import PIL.Image as image
+from threadpool import ThreadPool, makeRequests
 
 from getHtml import GetHtml
 
 header = {}
 # ********SETTINGS********
-# prd_ser in index.view
-prd_ser = 524390
+# Your cookie here, notice that one cookie for one manga
+header['Cookie'] = "YOUR_COOKIES_HERE"
+# URL of the manga, no need to change now
+url = 'https://dre-viewer.papy.co.jp/sc/view_jsimg2/cbd63773fe531f9ec7/9-493852-84/FIX001/index.view'
+# Where to put download manga
+imgdir = "./TEST"
+
+# Threadpool size, how many thread to use for download then images
+poolsize = 5
 # Max retry, no need to change
 max_loop = 20
-# Your cookie here
-header['Cookie'] = "YOUR_COOKIE_HERE"
-# url_base2 + %d in the index.view
-base_url = "https://dre-aka-p.papy.co.jp/filesv/sc/contents/524390/6s/0/%d"
-# cache_update in index.view, if don't have, give it None
-cache_update = None
-# auth_key_papy in index.view
-auth_key_papy = "auth-key=exp=1572535751~acl=%2Ffilesv%2Fsc%2Fcontents%2F524390%2F6s%2F0%2F%2A~hmac=6f537768a36f89fb3b3a9e5621dc2ca44df6ccf4e3a91b6fdb180ac2c864e6ea"
-# smax_page in index.view
-sum_page = 181
-# Where to put download manga
-imgdir = "./キルラキル_1"
 # ********SETTINGS********
 
 
@@ -84,26 +81,103 @@ def f_shuffle_r(ar_number, snum, x_idx, y):
     return ar_number
 
 
-getter = GetHtml()
-
-header['User-Agent'] = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0'
-header['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-header['Accept-Encoding'] = 'gzip, deflate, br'
+header['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'
+header['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
+header['Accept-Encoding'] = 'gzip'
 header['Referer'] = 'https://dre-viewer.papy.co.jp/sc/view_jsimg2/9b30e78b669d6dab4b/9-524390-84/FIX001/index.view'
 header['Origin'] = 'https://dre-viewer.papy.co.jp'
+header['DNT'] = '1'
 header['Sec-Fetch-Mode'] = 'cors'
+header['Sec-Fetch-Site'] = 'same-site'
 header['Connection'] = 'keep-alive'
 header['Upgrade-Insecure-Requests'] = '1'
-header['Accept-Language'] = 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3'
+header['Accept-Language'] = 'zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7'
 
-for page in range(1, sum_page + 1):
+
+def start_download(url):
+    download_info = get_download_info(url)
+    print(download_info)
+    download_images(**download_info)
+
+
+def get_download_info(url):
+    re_max_page = re.compile(r'var max_page = ([0-9]+?);')
+    re_base_url = re.compile(r'var url_base2 = \"(.+?)\"')
+    re_cache_update = re.compile(r'var cache_update = \"([0-9]+?)\";')
+    re_prd_ser = re.compile(r'var prd_ser = "([0-9]+?)";')
+    re_auth_key = re.compile(r'var auth_key = "(.+?)";')
+
+    getter = GetHtml()
+    getter.set(url, header=header, retryTimes=5)
+    org_data = getter.get()
+    try:
+        data = gzip.decompress(org_data)
+    except:
+        data = org_data
+
+    try:
+        data = org_data.decode('utf-8')
+    except:
+        try:
+            data = org_data.decode('EUC-JP')
+        except:
+            raise Exception('Unknow encoding.')
+
+    try:
+        prd_ser = int(re_prd_ser.findall(data)[0])
+    except:
+        raise Exception('Can not find prd_ser on the page')
+
+    try:
+        base_url = re_base_url.findall(data)[0] + "%d"
+    except:
+        raise Exception('Can not find base_url on the page')
+
+    try:
+        cache_update = re_cache_update.findall(data)[0]
+        if cache_update == '0':
+            cache_update = None
+    except:
+        cache_update = None
+
+    try:
+        auth_key_papy = re_auth_key.findall(data)[0]
+    except:
+        raise Exception('Can not find auth_key_papy on the page')
+
+    try:
+        sum_page = int(re_max_page.findall(data)[0])
+    except:
+        raise Exception('Can not find sum_page on the page')
+
+    return {
+        'prd_ser': prd_ser,
+        'base_url': base_url,
+        'cache_update': cache_update,
+        'auth_key_papy': auth_key_papy,
+        'sum_page': sum_page
+    }
+
+
+def download_images(prd_ser, base_url, cache_update, auth_key_papy, sum_page):
+    pool = ThreadPool(poolsize)
+    args_list = []
+    for page in range(1, sum_page + 1):
+        url = base_url % page + "?"
+        if cache_update:
+            url += "date=" + cache_update
+        url += auth_key_papy + "&origin=s_dre-viewer.papy.co.jp"
+        args_list.append(((url, page, prd_ser), None))
+
+    requests = makeRequests(download_one_page, args_list)
+    [pool.putRequest(i) for i in requests]
+    pool.wait()
+
+
+def download_one_page(url, page, prd_ser):
     x = 7
     y = 7
-    url = base_url % page + "?"
-    if cache_update:
-        url += "date=" + cache_update
-    url += auth_key_papy + "&origin=s_dre-viewer.papy.co.jp"
-
+    getter = GetHtml()
     getter.set(url, header=header, retryTimes=5)
     org_data = getter.get()
     try:
@@ -210,3 +284,7 @@ for page in range(1, sum_page + 1):
     with open(imgdir + '/%d.jpg' % page, "wb") as f:
         FinalImage.save(f)
         print('Saved page %d' % page)
+
+
+if __name__ == '__main__':
+    start_download(url)
