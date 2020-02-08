@@ -84,7 +84,7 @@ def f_shuffle_r(ar_number, snum, x_idx, y):
 header['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'
 header['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
 header['Accept-Encoding'] = 'gzip'
-header['Referer'] = 'https://dre-viewer.papy.co.jp/sc/view_jsimg2/9b30e78b669d6dab4b/9-524390-84/FIX001/index.view'
+header['Referer'] = url
 header['Origin'] = 'https://dre-viewer.papy.co.jp'
 header['DNT'] = '1'
 header['Sec-Fetch-Mode'] = 'cors'
@@ -165,7 +165,7 @@ def download_images(prd_ser, base_url, cache_update, auth_key_papy, sum_page):
     for page in range(1, sum_page + 1):
         url = base_url % page + "?"
         if cache_update:
-            url += "date=" + cache_update
+            url += "date=" + cache_update + '&'
         url += auth_key_papy + "&origin=s_dre-viewer.papy.co.jp"
         args_list.append(((url, page, prd_ser), None))
 
