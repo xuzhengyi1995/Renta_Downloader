@@ -25,7 +25,9 @@ Download manga you rent from <http://renta.papy.co.jp/>
 
     **Because some http only cookies can not be seen by javascript!**
 
-    **Remember that now we should change the cookie each downloading! It means that one cookie for one manga for a period time. Change the manga, Change the cookie!**
+    **~~Remember that now we should change the cookie each downloading! It means that one cookie for one manga for a period time. Change the manga, Change the cookie!~~**
+
+    **Maybe no need to change, but if the program not work, you can try to refresh the cookies.**
 
     > 1.  Open the page.
     > 2.  Press F12.
@@ -40,6 +42,8 @@ Download manga you rent from <http://renta.papy.co.jp/>
     The URL is finished with **index.view**, here we use the manga [魔法使いの嫁](https://dre-viewer.papy.co.jp/sc/view_jsimg2/sample/9-265205-84/FIX001/index.view).
 
     This is the URL of the **魔法使いの嫁**: <https://dre-viewer.papy.co.jp/sc/view_jsimg2/sample/9-265205-84/FIX001/index.view>
+
+    **If you want to download ebookrenta, just do the same thing but change the url to the ebookrenta:<http://us-dre4.ebookrenta.com/sc/view_jsimg2_en/3a2d4f07050062a785/9-671847-84/rbc1002/index.view>**
 
     Just copy this URL to the `url` in _main.py_.
 

@@ -14,7 +14,7 @@ header = {}
 # ********SETTINGS********
 # Your cookie here, notice that one cookie for one manga
 header['Cookie'] = "YOUR_COOKIES_HERE"
-# URL of the manga, no need to change now
+# URL of the manga
 url = 'https://dre-viewer.papy.co.jp/sc/view_jsimg2/cbd63773fe531f9ec7/9-493852-84/FIX001/index.view'
 # Where to put download manga
 imgdir = "./TEST"
@@ -101,8 +101,15 @@ def start_download(url):
 
 
 def get_download_info(url):
+    is_us = True if url.find('us-dre') != -1 else False
     re_max_page = re.compile(r'var max_page = ([0-9]+?);')
-    re_base_url = re.compile(r'var url_base2 = \"(.+?)\"')
+    if is_us:
+        re_base_url = re.compile(r'var url_base = \"(.+?)\"')
+        manga_base_url = url.split('.com')[0]
+    else:
+        re_base_url = re.compile(r'var url_base2 = \"(.+?)\"')
+        manga_base_url = ''
+
     re_cache_update = re.compile(r'var cache_update = \"([0-9]+?)\";')
     re_prd_ser = re.compile(r'var prd_ser = "([0-9]+?)";')
     re_auth_key = re.compile(r'var auth_key = "(.+?)";')
@@ -140,10 +147,13 @@ def get_download_info(url):
     except:
         cache_update = None
 
-    try:
-        auth_key_papy = re_auth_key.findall(data)[0]
-    except:
-        raise Exception('Can not find auth_key_papy on the page')
+    if not is_us:
+        try:
+            auth_key_papy = re_auth_key.findall(data)[0]
+        except:
+            raise Exception('Can not find auth_key_papy on the page')
+    else:
+        auth_key_papy = ''
 
     try:
         sum_page = int(re_max_page.findall(data)[0])
@@ -155,18 +165,26 @@ def get_download_info(url):
         'base_url': base_url,
         'cache_update': cache_update,
         'auth_key_papy': auth_key_papy,
-        'sum_page': sum_page
+        'sum_page': sum_page,
+        'is_us': is_us,
+        'manga_base_url': manga_base_url
     }
 
 
-def download_images(prd_ser, base_url, cache_update, auth_key_papy, sum_page):
+def download_images(prd_ser, base_url, cache_update, auth_key_papy, sum_page, is_us, manga_base_url):
     pool = ThreadPool(poolsize)
     args_list = []
     for page in range(1, sum_page + 1):
-        url = base_url % page + "?"
-        if cache_update:
-            url += "date=" + cache_update + '&'
-        url += auth_key_papy + "&origin=s_dre-viewer.papy.co.jp"
+
+        if is_us:
+            url = manga_base_url + '.com'
+            url += base_url % page + "?"
+            url += 'type=6'
+        else:
+            url = base_url % page + "?"
+            if cache_update:
+                url += "date=" + cache_update + '&'
+            url += auth_key_papy + "&origin=s_dre-viewer.papy.co.jp"
         args_list.append(((url, page, prd_ser), None))
 
     requests = makeRequests(download_one_page, args_list)
