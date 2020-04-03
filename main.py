@@ -299,7 +299,7 @@ def download_one_page(url, page, prd_ser):
         file_data = BytesIO(img_arr[i])
         og_img = image.open(file_data)
         FinalImage.paste(og_img, (x, y))
-    with open(imgdir + '/%d.jpg' % page, "wb") as f:
+    with open(imgdir + '/%03d.jpg' % page, "wb") as f:
         FinalImage.save(f)
         print('Saved page %d' % page)
 
