@@ -43,11 +43,17 @@ Download manga you rent from <http://renta.papy.co.jp/>
 
     This is the URL of the **魔法使いの嫁**: <https://dre-viewer.papy.co.jp/sc/view_jsimg2/sample/9-265205-84/FIX001/index.view>
 
-    **If you want to download ebookrenta, just do the same thing but change the url to the ebookrenta:<http://us-dre4.ebookrenta.com/sc/view_jsimg2_en/3a2d4f07050062a785/9-671847-84/rbc1002/index.view>**
-
     Just copy this URL to the `url` in _main.py_.
 
-4.  After edit the program, run `python main.py` to run it.
+4.  About _ebookrenta_, the us website.
+
+    **If you want to download ebookrenta, just do the same thing but change the url to the ebookrenta:<http://us-dre4.ebookrenta.com/sc/view_jsimg2_en/3a2d4f07050062a785/9-671847-84/rbc1002/index.view>**
+
+    Remember the **_view_jsimg2_en_** is very important.
+
+    If you got some URL like:<http://us-dre4.ebookrenta.com/sc/view_jsimg/689e8bd62ec792493d/9-535673-84/rbc1002/index.view>, you must change the part **_view_jsimg_** to **_view_jsimg2_en_**, because this script is designed for the newer version of viewer.
+
+5.  After edit the program, run `python main.py` to run it.
 
 # Notice
 
