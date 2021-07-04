@@ -118,15 +118,15 @@ def get_download_info(url):
     getter.set(url, header=header, retryTimes=5)
     org_data = getter.get()
     try:
-        data = gzip.decompress(org_data)
+        this_data = gzip.decompress(org_data)
     except:
-        data = org_data
+        this_data = org_data
 
     try:
-        data = org_data.decode('utf-8')
+        data = this_data.decode('utf-8')
     except:
         try:
-            data = org_data.decode('EUC-JP')
+            data = this_data.decode('EUC-JP')
         except:
             raise Exception('Unknow encoding.')
 
