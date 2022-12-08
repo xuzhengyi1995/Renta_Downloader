@@ -13,7 +13,7 @@ from getHtml import GetHtml
 header = {}
 # ********SETTINGS********
 # Your cookie here, notice that one cookie for one manga
-header['Cookie'] = "YOUR_COOKIES_HERE"
+header['Cookie'] = "YOUR_COOKIES_HERE".encode('utf-8')
 # URL of the manga
 url = 'https://dre-viewer.papy.co.jp/sc/view_jsimg2/cbd63773fe531f9ec7/9-493852-84/FIX001/index.view'
 # Where to put download manga
