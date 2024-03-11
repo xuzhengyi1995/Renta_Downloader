@@ -102,7 +102,7 @@ def start_download(url):
 
 def get_download_info(url):
     is_us = True if url.find('us-dre') != -1 else False
-    re_max_page = re.compile(r'var max_page = ([0-9]+?);')
+    re_max_page = re.compile(r'var max_page = parseInt\("(\d+)"\)')
     if is_us:
         re_base_url = re.compile(r'var url_base = \"(.+?)\"')
         manga_base_url = url.split('.com')[0]
